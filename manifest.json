@@ -1,0 +1,11 @@
+{
+    "display_name": "Improved Import plugin",
+    "loading_order": 9,
+    "requires": [],
+    "optional": [],
+    "js": "index.js",
+    "css": "style.css",
+    "author": "JasonLWalker",
+    "version": "0.0.3",
+    "homePage": "yourUrlHere"
+}
