@@ -202,10 +202,21 @@ export function getCharacterBookTemplate() {
     };
 }
 
-export function replacePlaceholders(s, replacements) {
-    const rex = /($\{([^}]+)\})/gi;
+export function getReplacementArray(s) {
+    const rex = /\$\{([^}]+)\}/gi;
     let m = s.matchAll(rex);
-    log (m);
+    var a = [];
+    for (let match of m) {
+        if (a[match[0]] === undefined) {
+            a[match[0]] = match[1];
+        }
+    }
+    log (a);
+    return a;
+}
+
+export function replacePlaceholders(s, replacements) {
+    const rex = /(\$\{[^}]+\})/gi;
     return s;
 }
 

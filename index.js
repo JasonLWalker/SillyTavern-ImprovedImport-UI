@@ -12,7 +12,8 @@ import {
     settingsHtml,
     infoHtml,
     closePopup,
-    replacePlaceholders
+    replacePlaceholders,
+    getReplacementArray
 } from "./util.js";
 
 import {
@@ -20,7 +21,7 @@ import {
     getFileBuffer
 } from "../../../utils.js"
 
-import { onClickNovelAiTab, tryNovelAiToV1 } from "./novelai.js";
+import { onClickNovelAiTab, tryNovelAiToV2 } from "./novelai.js";
 
 const mainHtml = `
 <div id="improvedimport-main" class="">
@@ -109,10 +110,8 @@ async function onImportCharacterButton(event) {
         if (fileFormat.indexOf('application/json', 0) > -1) {
             // Determine the type of scenario/card file
             var s = (new TextDecoder("utf-8")).decode(fileData);
-            jObj = JSON.parse(replacePlaceholders(s, []));
-            //var jObj = JSON.parse();
-            //console.log(jObj);
-            //JSON.parse(replacePlaceholders(JSON.stringify(card)));
+            var a = getReplacementArray(s);
+            let jObj = JSON.parse(replacePlaceholders(s, []));
             var card = tryNovelAiToV2(jObj);
             if (card) {
                 log(card);
@@ -132,7 +131,7 @@ async function onImportCharacterButton(event) {
             toastr.warning("Unable to import character", "Unable to parse character file");
         }
 
-        log(fileFormat, fileData, document.querySelector('#character_import_file').files[0]);
+        //log(fileFormat, fileData, document.querySelector('#character_import_file').files[0]);
 
         closePopup();
     });

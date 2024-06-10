@@ -16,7 +16,7 @@ import {
     uploadAvatarHtml, 
     closePopup,
     importCard,
-    getV1CardTemplate,
+    getV2CardTemplate,
     replacePlaceholders
 } from "./util.js";
 
@@ -234,6 +234,10 @@ export function tryNovelAiToV1(jsonObj) {
         //card.description = jsonObj['description'];
         card.scenario = getContextText(jsonObj);
         card.first_mes = jsonObj['prompt'];
+
+        if (card['name'])
+            card.name = card.name.replaceAll(/[^\w ]+/gi, '_');
+
         return card;
     }
 }
@@ -262,6 +266,11 @@ export function tryNovelAiToV2(jsonObj) {
             }
         }
 
+
+        if (card['name'])
+            card.name = card.name.replaceAll(/[^\w ]+/gi, '_');
+        if (data['name'])
+            data.name = data.name.replaceAll(/[^\w ]+/gi, '_');
 
         return card;
     }
