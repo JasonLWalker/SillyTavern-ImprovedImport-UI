@@ -11,7 +11,8 @@ import {
     log,
     settingsHtml,
     infoHtml,
-    closePopup
+    closePopup,
+    replacePlaceholders
 } from "./util.js";
 
 import {
@@ -107,9 +108,12 @@ async function onImportCharacterButton(event) {
 
         if (fileFormat.indexOf('application/json', 0) > -1) {
             // Determine the type of scenario/card file
-            let jObj = JSON.parse((new TextDecoder("utf-8")).decode(fileData));
+            var s = (new TextDecoder("utf-8")).decode(fileData);
+            jObj = JSON.parse(replacePlaceholders(s, []));
+            //var jObj = JSON.parse();
             //console.log(jObj);
-            var card = tryNovelAiToV1(jObj);
+            //JSON.parse(replacePlaceholders(JSON.stringify(card)));
+            var card = tryNovelAiToV2(jObj);
             if (card) {
                 log(card);
                 fileData = JSON.stringify(card);//(new TextEncoder()).encode(JSON.stringify(card));
