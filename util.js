@@ -57,7 +57,6 @@ export const settingsHtml = `
 export const infoHtml = `
     <p>Please select an option from the tabs above.</p>
 `;
-
 export const uploadAvatarHtml = `
 <div id="improvedimport-chooseimage">
     <div class="story-container">
@@ -138,6 +137,76 @@ export function getV1CardTemplate() {
         "first_mes": "",
         "mes_example": ""
     };
+}
+
+export function getV2CardTemplate() {
+    return {
+        spec: 'chara_card_v2',
+        spec_version: '2.0', // May 8th addition
+        data: {
+            name: '',
+            description: '',
+            personality: '',
+            scenario: '',
+            first_mes: '',
+            mes_example: '',
+
+            // New fields start here
+            creator_notes: '',
+            system_prompt: '',
+            post_history_instructions: '',
+            alternate_greetings: [],
+            //character_book: {},
+
+            // May 8th additions
+            tags: [],
+            creator: '',
+            character_version: '',
+            extensions: {} // see details for explanation
+        }
+    };
+}
+
+export function getCharacterBookEntryTemplate() {
+    return {
+        keys: [],
+        content: '',
+        extensions: {},
+        enabled: false,
+        insertion_order: 0, // if two entries inserted, lower "insertion order" = inserted higher
+        //case_sensitive: //boolean?
+    
+        // FIELDS WITH NO CURRENT EQUIVALENT IN SILLY
+        //name?: string // not used in prompt engineering
+        //priority?: number // if token budget reached, lower priority value = discarded first
+    
+        // FIELDS WITH NO CURRENT EQUIVALENT IN AGNAI
+        //id?: number // not used in prompt engineering
+        //comment?: string // not used in prompt engineering
+        //selective?: boolean // if `true`, require a key from both `keys` and `secondary_keys` to trigger the entry
+        //secondary_keys?: Array<string> // see field `selective`. ignored if selective == false
+        //constant?: boolean // if true, always inserted in the prompt (within budget limit)
+        //position?: 'before_char' | 'after_char' // whether the entry is placed before or after the character defs
+    };
+}
+
+export function getCharacterBookTemplate() {
+    return {
+        //name: undefined
+        //description: undefined
+        //scan_depth: undefined // agnai: "Memory: Chat History Depth"
+        //token_budget: undefined // agnai: "Memory: Context Limit"
+        //recursive_scanning: undefined // no agnai equivalent. whether entry content can trigger other entries
+        extensions: {},
+        entries: []
+    };
+}
+
+export function replacePlaceholders(s, replacements) {
+    const rex = /($\{([^}]+)\})/gi;
+    let m = s.matchAll(rex);
+    log (m);
+    return s;
 }
 
 export async function importCard(cardObj, b64Avatar) {

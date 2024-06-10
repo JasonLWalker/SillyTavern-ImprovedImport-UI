@@ -16,14 +16,13 @@ import {
     uploadAvatarHtml, 
     closePopup,
     importCard,
-    getV1CardTemplate
+    getV1CardTemplate,
+    replacePlaceholders
 } from "./util.js";
 
 import {
     getBase64Async
 } from "../../../utils.js"
-
-
 
 const storyItemHtml = `
 <div class="story-container">
@@ -122,12 +121,11 @@ async function onDownloadCard(event) {
     document.body.removeChild(element);
 }
 
-
 async function onImportCard(event) {
     var $elem = $(event.delegateTarget);
     var card = await $.ajax({
         type: "get",
-        url: uriEndpoint + '/v1card/' + $elem.data('storyid'),
+        url: uriEndpoint + '/v2card/' + $elem.data('storyid'),
         contentType: 'application/json'
     });
     closePopup();
@@ -147,8 +145,10 @@ async function onImportCard(event) {
     });
     let result = await popupPromise;
     closePopup();
-    if (popup.value !== false)
+    if (popup.value !== false){
+        card = JSON.parse(replacePlaceholders(JSON.stringify(card)));
         importCard(card, result, null);
+    }
 }
 
 async function loadStories(event) {
@@ -184,43 +184,86 @@ export async function onClickNovelAiTab(event) {
     return false;
 }
 
+function isNovelAiScenario(jsonObj) {
+    return ('scenarioVersion' in jsonObj && 'prompt' in jsonObj) 
+        return true;
+
+    return false;
+}
+
+function getContextText(jsonObj) {
+    if (jsonObj['context'] && typeof(jsonObj) == 'object')     
+    {
+        let context = jsonObj.context;
+        let arryText = [];
+        let s = '';
+        for (let k in context) {
+            let ctx = context[k];
+            if (ctx['text']) {
+                var obj = {text: ctx.text, order: 0};
+                if (ctx['contextConfig']) {
+                    if (ctx.contextConfig['insertionPosition']){
+                        obj.order = ctx.contextConfig.insertionPosition; 
+                    } else if (ctx.contextConfig['budgetPriority']) {
+                        obj.order = ctx.contextConfig.budgetPriority;
+                    }
+                }
+                arryText.push(obj);
+            }
+        }
+        if (arryText.length > 0) {
+            arryText.sort(function(a, b){
+                return (a.order > b.order) - (a.order < b.order);
+            });
+
+            for (let i = 0; i < arryText.length; i++) {
+                s += arryText[i].text;
+            }
+        }
+        return s;
+    }
+    return '';
+}
+
 export function tryNovelAiToV1(jsonObj) {
-    if ('scenarioVersion' in jsonObj && 'prompt' in jsonObj) {
+    if (isNovelAiScenario(jsonObj))
+    {
         // object is likely a NovelAi scenario
         let card = getV1CardTemplate();
         card.name = jsonObj['title'];
         //card.description = jsonObj['description'];
-        if (jsonObj['context'] && typeof(jsonObj) == 'object') {
-            let context = jsonObj.context;
-            let arryText = [];
-            let s = '';
-            for (let k in context) {
-                let ctx = context[k];
-                if (ctx['text']) {
-                    var obj = {text: ctx.text, order: 0};
-                    if (ctx['contextConfig']) {
-                        if (ctx.contextConfig['insertionPosition']){
-                            obj.order = ctx.contextConfig.insertionPosition; 
-                        } else if (ctx.contextConfig['budgetPriority']) {
-                            obj.order = ctx.contextConfig.budgetPriority;
-                        }
-                    }
-                    arryText.push(obj);
-                }
-            }
-            if (arryText.length > 0) {
-                //log(arryText);
-                arryText.sort(function(a, b){
-                    return (a.order > b.order) - (a.order < b.order);
-                });
-
-                //log(arryText);
-                for (let i = 0; i < arryText.length; i++) {
-                    card.scenario += arryText[i].text;
-                }
-            }
-        }
+        card.scenario = getContextText(jsonObj);
         card.first_mes = jsonObj['prompt'];
         return card;
     }
+}
+
+export function tryNovelAiToV2(jsonObj) {
+    if (isNovelAiScenario(jsonObj))
+    {
+        console.log(jsonObj);
+
+        // object is likely a NovelAi scenario
+        var card = getV2CardTemplate();
+        var data = card.data;
+
+        // Populate V1 data
+        data.name = jsonObj['title'];
+        //card.description = jsonObj['description'];
+        data.scenario = getContextText(jsonObj);
+        data.first_mes = jsonObj['prompt'];
+
+        // V2 fields
+        data.creator_notes = jsonObj['description'];
+
+        if (jsonObj['tags']) {
+            for (let i=0;i<jsonObj.tags.length;i++) {
+                data.tags.push(jsonObj.tags[i]);
+            }
+        }
+
+
+        return card;
+    }
+    
 }
